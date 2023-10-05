@@ -1,1 +1,1 @@
-uvicorn CaaS:app --port 6969 --reload 
+python -m CaaS

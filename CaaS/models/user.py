@@ -8,3 +8,4 @@ class User(Document):
 
     class Settings:
         name = "users"
+

@@ -1,8 +1,10 @@
-from CaaS import router as app
+from fastapi import APIRouter
+from CaaS.utils.defaults import get_prefix
 
+router = APIRouter(prefix=get_prefix("/test"))
 
-@app.get("/api/test")
-async def index() -> dict:
+@router.get("/")
+def index() -> dict:
     return {
         "data": "Test data"
     }

@@ -11,4 +11,3 @@ if not PORT:
 DB_URL = os.environ.get("DB_URL")
 if not DB_URL:
     raise Exception("Database url not found in the config.")
-    exit(1)

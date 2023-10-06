@@ -11,7 +11,6 @@ async def db_connect():
     await connect()
 
 async def main():
-    # await connect()
     uvicorn.run(
         "CaaS.__main__:app",
         host="127.0.0.1",

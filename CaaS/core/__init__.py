@@ -1,6 +1,7 @@
 import os
 from io import TextIOWrapper, BufferedReader, BufferedWriter
 from typing import Optional, Union, Literal
+from base64 import b64decode, b64encode
 
 
 
@@ -9,6 +10,7 @@ class DefaultService:
     def __init__(self, name: str, root: Optional[str] = None):
         self.name = name
         self.encoding = "utf-8"
+        self.chunk_size = 96
         if root:
             self.root = root
         else:
@@ -35,4 +37,10 @@ class DefaultService:
         if not os.path.isfile(path):
             return False
         return open(path, read_mode)
+
+    def get_base64(self, b: bytes) -> str:
+        return b64encode(b).decode(self.encoding)
+
+    def get_bytes(self, s: str) -> bytes:
+        return b64decode(s)
 

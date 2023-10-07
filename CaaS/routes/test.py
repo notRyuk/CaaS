@@ -4,6 +4,7 @@ from CaaS.models.user import User
 
 router = APIRouter(prefix=get_prefix("/test"))
 
+
 @router.get("/")
 async def index() -> dict:
     return {

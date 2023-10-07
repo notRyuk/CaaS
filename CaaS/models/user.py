@@ -1,4 +1,6 @@
 from beanie import Document
+from CaaS.utils.models import Models
+
 
 class User(Document):
     name: str
@@ -7,5 +9,4 @@ class User(Document):
     password: str
 
     class Settings:
-        name = "users"
-
+        name = Models.user

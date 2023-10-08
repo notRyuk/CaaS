@@ -30,13 +30,14 @@ class DefaultService:
     def write_file(
         self,
         file_name: str, 
-        read_mode: Optional[type[Literal['wb', 'bw', 'ab', 'ba', 'xb', 'bx']]] = "r",
+        write_mode: Optional[type[Literal['wb', 'bw', 'ab', 'ba', 'xb', 'bx']]] = "w",
         root: Optional[str] = os.getcwd()
-    ) -> Union[TextIOWrapper, BufferedWriter, False]:
+    ) -> Union[TextIOWrapper, BufferedWriter]:
         path = os.path.join(root, file_name)
-        if not os.path.isfile(path):
-            return False
-        return open(path, read_mode)
+        return open(path, write_mode)
+
+    def is_file(self, file_name: str, root: Optional[str] = os.getcwd()) -> bool:
+        return os.path.isfile(os.path.join(root, file_name))
 
     def get_base64(self, b: bytes) -> str:
         return b64encode(b).decode(self.encoding)

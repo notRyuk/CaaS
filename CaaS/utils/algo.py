@@ -6,4 +6,3 @@ class Algorithms:
 
     # symmetric
     des = "DES"
-    aes = "AES"

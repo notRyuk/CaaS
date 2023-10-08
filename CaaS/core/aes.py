@@ -41,12 +41,12 @@ class AESService(DefaultService):
         else:
             self.token = token
             self.secret_key = self.get_bytes(token)
+        
         if nonce:
             self.cipher = AES.new(self.secret_key, mode=AES.MODE_EAX, nonce=nonce)
         else:
             self.cipher = AES.new(self.secret_key, mode=AES.MODE_EAX)
         
-
 
     def get_nonce(self):
         if not self.cipher:
@@ -69,7 +69,6 @@ class AESService(DefaultService):
     def _verify(self, tag: str, nonce: Optional[str] = None):
         if nonce:
             self.create_token(self.get_bytes(nonce))
-        
         if not self.cipher:
             return None
         return self.cipher.verify(self.get_bytes(tag))
@@ -77,17 +76,11 @@ class AESService(DefaultService):
 
     def decrypt(self, ed: EncryptionData) -> Optional[str]:
         pt = self.cipher.decrypt(self.get_bytes(ed["ct"]))
+        self._verify(ed["tag"])
         return pt.decode(self.encoding)
     
-    def decrypt_ct(self, ct: str) -> Optional[str]:
+    
+    def decrypt_ct(self, ct: str, tag: str) -> Optional[str]:
         pt = self.cipher.decrypt(self.get_bytes(ct))
+        self._verify(tag)
         return pt.decode(self.encoding)
-    
-
-
-        
-
-        
-        
-
-        

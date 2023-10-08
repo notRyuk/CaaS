@@ -21,7 +21,7 @@ class DefaultService:
         file_name: str, 
         read_mode: Optional[type[Literal['r', 'rt', 'tr', 'U', 'rU', 'Ur', 'rtU', 'rUt', 'Urt', 'trU', 'tUr', 'Utr']]] = "r",
         root: Optional[str] = os.getcwd()
-    ) -> Union[TextIOWrapper, BufferedReader, False]:
+    ) -> Union[TextIOWrapper, BufferedReader, bool]:
         path = os.path.join(root, file_name)
         if not os.path.isfile(path):
             return False

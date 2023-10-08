@@ -1,14 +1,15 @@
 import logging
 from datetime import datetime, timedelta
-
+from typing import TypedDict
+from Crypto.Random import random
 import jwt
 from fastapi import APIRouter, HTTPException
-
-from CaaS.models import User
+from CaaS.utils import mailer
+from CaaS.models import User,Otp
 from CaaS.models import Session
 from CaaS.utils.defaults import get_prefix
 from pydantic import BaseModel
-
+from CaaS.core.dsa import DSAService
 router = APIRouter(prefix=get_prefix("/user"))
 logger = logging.getLogger("uvicorn.info")
 
@@ -25,20 +26,27 @@ async def login(user: LoginUser):
         raise HTTPException(status_code=404, detail="User not found")
     if user.password != existing_user.password:
         raise HTTPException(status_code=401, detail="Incorrect password")
+    
+    dsaService=DSAService()
+    otp=random.randrange(100000,1000000)
+    return dsaService.encrypting(email=user.email, id=str(existing_user.id), otp=otp)
+
+
+
 
     # Create a payload for the JWT token
-    token_data = {"sub": existing_user.email}
-    access_token = create_access_token(token_data)
+    # token_data = {"sub": existing_user.email}
+    # access_token = create_access_token(token_data)
 
-    session = Session(
-        created_at=datetime.now(),
-        user=str(existing_user.id),  # Replace with the user's ID
-        token=access_token  # Replace with the user's access token
-    )    # Generate a JWT token
+    # session = Session(
+    #     created_at=datetime.now(),
+    #     user=str(existing_user.id),  # Replace with the user's ID
+    #     token=access_token  # Replace with the user's access token
+    # )    # Generate a JWT token
 
-    await session.insert()
+    # await session.insert()
 
-    return {"access_token": access_token, "token_type": "bearer"}
+    # return {"access_token": access_token, "token_type": "bearer"}
 
 
 SECRET_KEY = "CloudComputing"  # Replace with your actual secret key
@@ -60,11 +68,40 @@ async def signup(user: User):
     logger.info(existing_user)
     if existing_user:
         return HTTPException(status_code=400, detail="User with this email already exists")
+    otp=random.randrange(100000,1000000)
     new_user = User(
         name=user.name,
         email=user.email,
         phone=user.phone,
-        password=user.password
+        password=user.password,
+        otp=Otp(verified=False,otp=otp)
     )
+    await mailer.sendMail(user.email, f"Your OTP for getting your files fked is <b>{otp}</b>")
     await new_user.insert()
     return {"message": "Signup successful"}
+
+class OTP(BaseModel):
+    email: str
+    otp: int
+
+@router.post("/signupotp")
+async def verify_signup(otp_user: OTP):
+    existing_user = User.find_one({'email': otp_user.email})
+    if not existing_user:
+        return HTTPException(status_code=404, detail="User not found")
+    dsaService=DSAService()
+    dsaService.generate_keys(existing_user.id,existing_user.email)
+    #send the keys files
+
+    
+
+@router.post("/loginotp")
+async def verify_login(otp_user:OTP):
+    usr=User.find_one({"email":otp_user.email})
+    dsaService=DSAService()
+    dsaService.decrypting(otp_user.email,usr.id,otp_user.otp)    
+
+
+
+    
+    

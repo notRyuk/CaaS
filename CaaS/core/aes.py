@@ -15,10 +15,9 @@ class EncryptionData(TypedDict):
 class AESService(DefaultService):
 
     def __init__(self, nonce: Optional[str] = None, token : Optional[str] = None):
-        super().__init__(Algorithms.aes, os.getcwd())
+        super().__init__(Algorithms.aes, os.path.join(os.getcwd(), "temp"))
         
         self.name = Algorithms.aes
-        self.root = os.getcwd()
         self.byte_size = 32
         self.generated_str_size = math.ceil(self.byte_size*8/6)+1
         self.cipher = None

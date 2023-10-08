@@ -7,8 +7,9 @@ PORT = int(os.environ.get("PORT"))
 if not PORT:
     print(Warning("Port is not found int the config Defaulting to the default port."))
     PORT = 8000
-SENDERMAIL=os.environ.get("SENDERMAIL")
-SENDERPASS=os.environ.get("SENDERPASS")
+
+SENDERMAIL = os.environ.get("SENDERMAIL")
+SENDERPASS = os.environ.get("SENDERPASS")
 
 DB_URL = os.environ.get("DB_URL")
 if not DB_URL:

@@ -23,7 +23,7 @@ class DSAService(DefaultService):
         self.byte_size = byte_size
         self.format = format
         self.passphrase = passphrase
-        self.key = DSA.generate(self.byte_size)
+        self.key = None
 
     
     def update_paraphrase(self, paraphrase: str):
@@ -38,10 +38,10 @@ class DSAService(DefaultService):
             self.update_paraphrase(passphrase)
 
         if self.passphrase and len(self.passphrase):
-            private_key = self.key.export_key(format=self.format, protection=self.format, passphrase=self.passphrase)
+            private_key = self.key.export_key(passphrase=self.passphrase)
         else:
-            private_key = self.key.export_key(format=self.format, protection=self.format)    
-        public_key = self.key.publickey().export_key(format=self.format)
+            private_key = self.key.export_key()
+        public_key = self.key.publickey().export_key()
 
         return (private_key, public_key)
 
@@ -50,8 +50,9 @@ class DSAService(DefaultService):
             return None
         if not os.path.isdir(os.path.join(self.root, "temp", userId)):
             os.mkdir(os.path.join(self.root, "temp", userId))
-        file_name="id_dsa"
+        file_name = "id_dsa"
         root = os.path.join(self.root, "temp", userId)
+        self.key = DSA.generate(self.byte_size)
         sk, pk = self.export_keys(passphrase=passphrase)
         self.write_file(
             file_name=file_name, 
@@ -60,37 +61,38 @@ class DSAService(DefaultService):
         ).write(sk)
         exists = self.is_file(file_name, root)
         self.write_file(
-            file_name=file_name+".pub", 
+            file_name=file_name+".pub",
             root=root, 
             write_mode="wb"
         ).write(pk)
         exists = exists and self.is_file(file_name+".pub", root)
         return exists
     
-    def encrypting(self, email, id, otp): # take user id input
+    def encrypting(self, email: str, id: str, otp: int): # take user id input
         if not os.path.isfile(os.path.join(self.root, "temp", id, "id_dsa")):
-            pass
-        hash_obj = SHA256.new(f"{email}:{otp}")
-        self.key = DSA.import_key(os.path.join(self.root, "temp", id, "id_dsa")) # private key file
+            return None
+        hash_obj = SHA256.new(bytes(f"{email}:{otp}", self.encoding))
+        self.key = DSA.import_key(
+            self.read_file(os.path.join(self.root, "temp", id, "id_dsa")).read(),
+            passphrase=email
+        ) # private key file
         
         signer = DSS.new(self.key, 'fips-186-3')
         signature = signer.sign(hash_obj)
-        ootp=Otp(email=email,signature=signature)
-        ootp.insert()
+        print("signer")
         return self.get_base64(signature)
     
-    def decrypting(self,email,id,otp):
-        hash_obj = SHA256.new(f"{email}:{otp}")
-        self.key = DSA.import_key(os.path.join(self.root, "temp", id, "id_dsa.pub"))
-        # public key file
+    def decrypting(self, email: str, id: str, otp: int, signature: str):
+        if not os.path.isfile(os.path.join(self.root, "temp", id, "id_dsa")):
+            return None
+        hash_obj = SHA256.new(bytes(f"{email}:{otp}", self.encoding))
+        self.key = DSA.import_key(
+            self.read_file(os.path.join(self.root, "temp", id, "id_dsa")).read(),
+            passphrase=email
+        )
         verifier = DSS.new(self.key, 'fips-186-3')
-        ootp=Otp.find_one({"email":email})
-        try:
-            verifier.verify(hash_obj, ootp.signature)
-            print("The message is authentic.")
-        except ValueError:
-            print("The message is not authentic.")
-        
+        print(self.get_bytes(signature))
+        return verifier.verify(hash_obj, self.get_bytes(signature))
 
 
 

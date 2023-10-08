@@ -6,7 +6,7 @@ from CaaS.utils.objectid import ObjectId
 
 class Session(Document):
     created_at: datetime
-    user: str
+    email: str
     token: str
 
     class Settings:

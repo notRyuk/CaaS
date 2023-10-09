@@ -45,7 +45,7 @@ class DSAService(DefaultService):
 
         return (private_key, public_key)
 
-    def generate_keys(self,userId: str,passphrase: Optional[str] = None) -> Optional[bool]:
+    def generate_keys(self,userId: str, passphrase: Optional[str] = None) -> Optional[bool]:
         if not userId:
             return None
         if not os.path.isdir(os.path.join(self.root, "temp", userId)):
@@ -65,34 +65,32 @@ class DSAService(DefaultService):
             root=root, 
             write_mode="wb"
         ).write(pk)
-        exists = exists and self.is_file(file_name+".pub", root)
-        return exists
+        return exists and self.is_file(file_name+".pub", root)
     
     def encrypting(self, email: str, id: str, otp: int): # take user id input
         if not os.path.isfile(os.path.join(self.root, "temp", id, "id_dsa")):
             return None
         hash_obj = SHA256.new(bytes(f"{email}:{otp}", self.encoding))
-        self.key = DSA.import_key(
-            self.read_file(os.path.join(self.root, "temp", id, "id_dsa")).read(),
-            passphrase=email
-        ) # private key file
-        
-        signer = DSS.new(self.key, 'fips-186-3')
-        signature = signer.sign(hash_obj)
-        print("signer")
-        return self.get_base64(signature)
-    
-    def decrypting(self, email: str, id: str, otp: int, signature: str):
-        if not os.path.isfile(os.path.join(self.root, "temp", id, "id_dsa")):
-            return None
-        hash_obj = SHA256.new(bytes(f"{email}:{otp}", self.encoding))
+        print(self.get_base64(hash_obj.digest()))
         self.key = DSA.import_key(
             self.read_file(os.path.join(self.root, "temp", id, "id_dsa")).read(),
             passphrase=email
         )
+        signer = DSS.new(self.key, 'fips-186-3')
+        signature = signer.sign(hash_obj)
+        return self.get_base64(signature)
+    
+    def decrypting(self, email: str, id: str, otp: int, signature: str):
+        if not os.path.isfile(os.path.join(self.root, "temp", id, "id_dsa.pub")):
+            return None
+        hash_obj = SHA256.new(bytes(f"{email}:{otp}", self.encoding))
+        self.key = DSA.import_key(self.read_file(os.path.join(self.root, "temp", id, "id_dsa.pub")).read())
         verifier = DSS.new(self.key, 'fips-186-3')
-        print(self.get_bytes(signature))
-        return verifier.verify(hash_obj, self.get_bytes(signature))
+        try:
+            verifier.verify(hash_obj, self.get_bytes(signature))
+            return True
+        except ValueError:
+            return False
 
 
 

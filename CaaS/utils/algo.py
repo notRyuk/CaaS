@@ -5,4 +5,4 @@ class Algorithms:
     dsa = "DSA"
 
     # symmetric
-    des = "DES"
+    aes = "AES"

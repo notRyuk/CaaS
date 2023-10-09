@@ -67,6 +67,7 @@ class DSAService(DefaultService):
         ).write(pk)
         return exists and self.is_file(file_name+".pub", root)
     
+
     def encrypting(self, email: str, id: str, otp: int): # take user id input
         if not os.path.isfile(os.path.join(self.root, "temp", id, "id_dsa")):
             return None
@@ -80,6 +81,7 @@ class DSAService(DefaultService):
         signature = signer.sign(hash_obj)
         return self.get_base64(signature)
     
+
     def decrypting(self, email: str, id: str, otp: int, signature: str):
         if not os.path.isfile(os.path.join(self.root, "temp", id, "id_dsa.pub")):
             return None
@@ -91,10 +93,4 @@ class DSAService(DefaultService):
             return True
         except ValueError:
             return False
-
-
-
-
-    
-
     

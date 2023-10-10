@@ -1,11 +1,15 @@
 import os
-from typing import Optional, Union, Literal, Tuple, TypedDict
+from typing import Literal, Optional, Tuple, Union
+
+from Crypto.Cipher import AES, PKCS1_OAEP
 from Crypto.PublicKey import RSA
-from Crypto.Cipher import PKCS1_OAEP, AES
 from Crypto.Random import get_random_bytes
+
+from CaaS.utils.algo import Algorithms
+
 from . import DefaultService
 from .aes import EncryptionData as ED
-from CaaS.utils.algo import Algorithms
+
 
 class EncryptionData(ED):
     key_type: Union[Literal["pk"], Literal["sk"]]
@@ -81,7 +85,6 @@ class RSAService(DefaultService):
             self.key = RSA.import_key(self.read_file(os.path.join(self.root if not root else root, "temp", file_name)).read())
         self.secret_key = get_random_bytes(32) # session key
         self.token = self.get_base64(self.secret_key)
-        print("token", self.token)
         self.cipher = PKCS1_OAEP.new(self.key)
         self.encrypted_secret_key = self.cipher.encrypt(self.secret_key)
 
@@ -129,7 +132,6 @@ class RSAService(DefaultService):
             self.cipher = PKCS1_OAEP.new(self.key)
             self.secret_key = self.cipher.decrypt(self.get_bytes(ed["secret_token"]))
             self.token = self.get_base64(self.secret_key)
-            print("decrypt token", self.token)
             self.session_cipher = AES.new(self.secret_key, AES.MODE_EAX, nonce=self.get_bytes(ed["nonce"]))
             data = self.session_cipher.decrypt_and_verify(self.get_bytes(ed["ct"]), self.get_bytes(ed["tag"]))
             return data.decode(self.encoding)

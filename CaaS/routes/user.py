@@ -1,16 +1,17 @@
 import logging
 from datetime import datetime, timedelta
-from typing import TypedDict
-from Crypto.Random import random
+
 import jwt
+from Crypto.Random import random
 from fastapi import APIRouter, HTTPException
-from CaaS.utils import mailer
-from CaaS.models import User, Otp
-from CaaS.models.user import Otp as UserOtp
-from CaaS.models import Session
-from CaaS.utils.defaults import get_prefix
 from pydantic import BaseModel
+
 from CaaS.core.dsa import DSAService
+from CaaS.models import Otp, Session, User
+from CaaS.models.user import Otp as UserOtp
+from CaaS.utils import mailer
+from CaaS.utils.defaults import get_prefix
+
 router = APIRouter(prefix=get_prefix("/user"))
 logger = logging.getLogger("uvicorn.info")
 

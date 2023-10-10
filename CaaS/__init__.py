@@ -1,10 +1,11 @@
 import logging
-from fastapi import FastAPI
-from beanie import init_beanie
-from motor.motor_asyncio import AsyncIOMotorClient
-from CaaS.models import __all__ as ALL_MODELS
-from CaaS.config import DB_URL
 
+from beanie import init_beanie
+from fastapi import FastAPI
+from motor.motor_asyncio import AsyncIOMotorClient
+
+from CaaS.config import DB_URL
+from CaaS.models import __all__ as ALL_MODELS
 from CaaS.routes import test, user
 
 app = FastAPI()

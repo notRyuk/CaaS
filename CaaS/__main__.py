@@ -1,8 +1,9 @@
-from CaaS import app, connect
-from CaaS.config import PORT
 import asyncio
+
 import uvicorn
 
+from CaaS import app, connect
+from CaaS.config import PORT
 
 loop = asyncio.get_event_loop()
 

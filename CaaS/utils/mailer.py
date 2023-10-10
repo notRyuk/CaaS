@@ -1,6 +1,6 @@
-
 import smtplib
-from CaaS.config import SENDERMAIL,SENDERPASS
+
+from CaaS.config import SENDERMAIL, SENDERPASS
 
 
 def sendMail(email,content):

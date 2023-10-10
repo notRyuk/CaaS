@@ -1,13 +1,15 @@
 import os
-from typing import Optional, Union, Literal, Tuple
+from typing import Literal, Optional, Tuple, Union
+
+from Crypto.Hash import SHA256
 from Crypto.PublicKey import DSA
 from Crypto.Signature import DSS
-from Crypto.Hash import SHA256
 
 from CaaS.models.otp import Otp
+from CaaS.utils.algo import Algorithms
 
 from . import DefaultService
-from CaaS.utils.algo import Algorithms
+
 
 class DSAService(DefaultService):
 

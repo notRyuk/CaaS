@@ -3,9 +3,10 @@ import os
 from datetime import datetime, timedelta
 from typing import Annotated
 
+import aiofiles
 import jwt
 from Crypto.Random import random
-from fastapi import APIRouter, Form, HTTPException, UploadFile, File
+from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
@@ -103,14 +104,16 @@ async def verify_signup(otp_user: OTP):
     
 
 @router.post("/loginotp")
-async def verify_login(otp_user: Annotated[OTP, Form()], file: bytes = File(...)):
-    print(file) 
+async def verify_login(email: Annotated[str, Form()], otp: Annotated[int, Form()], file: UploadFile = File(...)):
+    otp_user = OTP(email=email, otp=otp)
     usr = await User.find_one({"email": otp_user.email})
     if not usr:
         return HTTPException(status_code=404, detail="User not found")
     ootp = await Otp.find_one({"email": usr.email})
     if not ootp:
         return HTTPException(status_code=403, detail="Unauthorized")
+    async with aiofiles.open(os.path.join(os.getcwd(), "temp", str(usr.id), "id_dsa"), "wb") as f:
+        await f.write(await file.read())
     dsaService = DSAService()
     verified = dsaService.decrypting(otp_user.email, str(usr.id), otp_user.otp, ootp.signature)
     if not verified:

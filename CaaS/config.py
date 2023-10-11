@@ -10,6 +10,11 @@ if not PORT:
 
 SENDERMAIL = os.environ.get("SENDERMAIL")
 SENDERPASS = os.environ.get("SENDERPASS")
+MODE=os.environ.get("MODE")
+if MODE=='prod':
+    ROOTDIR=os.environ.get("PATH")
+else:
+    ROOTDIR= os.path.join(os.getcwd(), "temp")
 
 DB_URL = os.environ.get("DB_URL")
 if not DB_URL:

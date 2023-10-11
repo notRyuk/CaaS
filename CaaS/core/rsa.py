@@ -56,10 +56,12 @@ class RSAService(DefaultService):
 
         return (private_key, public_key)
 
-    def generate_keys(self, file_name: str, passphrase: Optional[str] = None) -> Optional[bool]:
+    def generate_keys(self, file_name: str, dir_name: Optional[str] = None, passphrase: Optional[str] = None) -> Optional[bool]:
         if not file_name or not len(file_name):
             return None
-        root = self.root
+        if not os.path.isdir(os.path.join(self.root, dir_name)):
+            os.mkdir(os.path.join(self.root, dir_name))
+        root = os.path.join(self.root, dir_name) if dir_name and len(dir_name) else self.root
         sk, pk = self.export_keys(passphrase=passphrase)
         self.write_file(
             file_name=file_name, 

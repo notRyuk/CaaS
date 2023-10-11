@@ -4,7 +4,7 @@ from fastapi.security import OAuth2PasswordBearer as Bearer
 from CaaS.models import Session, User
 from fastapi.responses import FileResponse
 import jwt, os
-from CaaS.config import JWT_SECRET_KEY, JWT_ALGORITHM
+from CaaS.config import JWT_SECRET_KEY, JWT_ALGORITHM, ROOTDIR
 
 
 router = APIRouter(prefix="/static")
@@ -26,7 +26,7 @@ async def get_file(
     if not session_data["sub"] == session.email:
         return HTTPException(status_code=401, detail="Unauthorized!")
     user = await User.find_one({"email": session.email})
-    path = os.path.join(os.getcwd(), "temp", str(user.id), file)
+    path = os.path.join(ROOTDIR, str(user.id), file)
     if not os.path.isfile(path):
         return HTTPException(status_code=404, detail="<h1>404 Bad Request! File not found</h1>")
     return FileResponse(path)

@@ -74,7 +74,7 @@ async def signup(user: User):
     )
     mailer.sendMail(user.email, f"Your OTP for getting your files fked is <b>{otp}</b>")
     await new_user.insert()
-    return {"message": "OTP sent to the registered email."}
+    return {"message": "OTP sent to the registered email.", "email": user.email}
 
 class OTP(BaseModel):
     email: str
@@ -97,7 +97,7 @@ async def verify_signup(otp_user: OTP):
     del existing_user.otp
     await existing_user.save()
     path = os.path.join(os.getcwd(), "temp", str(existing_user.id), "id_dsa")
-    res = TempFileResponse(path)
+    res = FileResponse(path)
     return res
     
 

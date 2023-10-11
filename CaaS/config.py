@@ -10,11 +10,13 @@ if not PORT:
 
 SENDERMAIL = os.environ.get("SENDERMAIL")
 SENDERPASS = os.environ.get("SENDERPASS")
+
 MODE=os.environ.get("MODE")
 if MODE=='prod':
-    ROOTDIR=os.environ.get("PATH")
+    ROOTDIR = os.environ.get("PATH")
 else:
-    ROOTDIR= os.path.join(os.getcwd(), "temp")
+    ROOTDIR = os.path.join(os.getcwd(), "temp")
+
 JWT_SECRET_KEY = "CloudComputing"
 JWT_ALGORITHM = "HS256"
 

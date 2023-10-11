@@ -10,7 +10,6 @@ from CaaS.utils.algo import Algorithms
 
 from . import DefaultService
 
-
 class DSAService(DefaultService):
 
     def __init__(
@@ -19,7 +18,7 @@ class DSAService(DefaultService):
         format: Union[Literal["PEM"], Literal["DER"], Literal["OpenSSH"]] = "PEM",
         passphrase: Optional[str] = None
     ):
-        super().__init__(Algorithms.rsa, os.getcwd())
+        super().__init__(Algorithms.rsa)
 
         self.name = Algorithms.rsa
         self.byte_size = byte_size
@@ -47,13 +46,13 @@ class DSAService(DefaultService):
 
         return (private_key, public_key)
 
-    def generate_keys(self,userId: str, passphrase: Optional[str] = None) -> Optional[bool]:
+    def generate_keys(self, userId: str, passphrase: Optional[str] = None) -> Optional[bool]:
         if not userId:
             return None
-        if not os.path.isdir(os.path.join(self.root, "temp", userId)):
-            os.mkdir(os.path.join(self.root, "temp", userId))
+        if not os.path.isdir(os.path.join(self.root, userId)):
+            os.mkdir(os.path.join(self.root, userId))
         file_name = "id_dsa"
-        root = os.path.join(self.root, "temp", userId)
+        root = os.path.join(self.root, userId)
         self.key = DSA.generate(self.byte_size)
         sk, pk = self.export_keys(passphrase=passphrase)
         self.write_file(
@@ -70,13 +69,12 @@ class DSAService(DefaultService):
         return exists and self.is_file(file_name+".pub", root)
     
 
-    def encrypting(self, email: str, id: str, otp: int): # take user id input
-        if not os.path.isfile(os.path.join(self.root, "temp", id, "id_dsa")):
+    def encrypting(self, email: str, id: str, otp: int):
+        if not os.path.isfile(os.path.join(self.root, id, "id_dsa")):
             return None
         hash_obj = SHA256.new(bytes(f"{email}:{otp}", self.encoding))
-        print(self.get_base64(hash_obj.digest()))
         self.key = DSA.import_key(
-            self.read_file("id_dsa", "r", os.path.join(self.root, "temp", id)).read(),
+            self.read_file("id_dsa", "r", os.path.join(self.root, id)).read(),
             passphrase=email
         )
         signer = DSS.new(self.key, 'fips-186-3')
@@ -85,10 +83,10 @@ class DSAService(DefaultService):
     
 
     def decrypting(self, email: str, id: str, otp: int, signature: str):
-        if not os.path.isfile(os.path.join(self.root, "temp", id, "id_dsa.pub")):
+        if not os.path.isfile(os.path.join(self.root, id, "id_dsa.pub")):
             return None
         hash_obj = SHA256.new(bytes(f"{email}:{otp}", self.encoding))
-        self.key = DSA.import_key(self.read_file("id_dsa.pub", "r", os.path.join(self.root, "temp", id)).read())
+        self.key = DSA.import_key(self.read_file( "id_dsa.pub", "r", os.path.join(self.root, id)).read())
         verifier = DSS.new(self.key, 'fips-186-3')
         try:
             verifier.verify(hash_obj, self.get_bytes(signature))

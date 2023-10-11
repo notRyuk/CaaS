@@ -2,7 +2,7 @@ import os
 from io import TextIOWrapper, BufferedReader, BufferedWriter
 from typing import Optional, Union, Literal
 from base64 import b64decode, b64encode
-
+from CaaS.config import ROOTDIR
 
 
 class DefaultService:
@@ -14,7 +14,7 @@ class DefaultService:
         if root:
             self.root = root
         else:
-            self.root = os.getcwd()
+            self.root = ROOTDIR
     
     def read_file(
         self, 

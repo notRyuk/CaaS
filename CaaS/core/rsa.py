@@ -23,7 +23,7 @@ class RSAService(DefaultService):
         format: Union[Literal["PEM"], Literal["DER"], Literal["OpenSSH"]] = "PEM",
         passphrase: Optional[str] = None
     ):
-        super().__init__(Algorithms.rsa, os.getcwd())
+        super().__init__(Algorithms.rsa)
 
         self.name = Algorithms.rsa
         self.byte_size = byte_size
@@ -59,7 +59,7 @@ class RSAService(DefaultService):
     def generate_keys(self, file_name: str, passphrase: Optional[str] = None) -> Optional[bool]:
         if not file_name or not len(file_name):
             return None
-        root = os.path.join(self.root, "temp")
+        root = self.root
         sk, pk = self.export_keys(passphrase=passphrase)
         self.write_file(
             file_name=file_name, 
@@ -80,14 +80,13 @@ class RSAService(DefaultService):
         if not file_name or not len(file_name):
             return None
         if passphrase and len(passphrase):
-            self.key = RSA.import_key(self.read_file(os.path.join(self.root if not root else root, "temp", file_name)).read(), passphrase=passphrase)
+            self.key = RSA.import_key(self.read_file(file_name, "r", self.root if not root else root).read(), passphrase=passphrase)
         else:    
-            self.key = RSA.import_key(self.read_file(os.path.join(self.root if not root else root, "temp", file_name)).read())
+            self.key = RSA.import_key(self.read_file(file_name, "r", self.root if not root else root).read())
         self.secret_key = get_random_bytes(32) # session key
         self.token = self.get_base64(self.secret_key)
         self.cipher = PKCS1_OAEP.new(self.key)
         self.encrypted_secret_key = self.cipher.encrypt(self.secret_key)
-
         self.session_cipher = AES.new(self.secret_key, AES.MODE_EAX)
     
     def encrypt(
@@ -126,9 +125,9 @@ class RSAService(DefaultService):
             return "Public key is used for encrypting a private key is not provided"
         else:
             if passphrase and len(passphrase):
-                self.key = RSA.import_key(self.read_file(os.path.join(self.root if not root else root, "temp", file_name)).read(), passphrase=passphrase)
+                self.key = RSA.import_key(self.read_file(file_name, "r", self.root if not root else root).read(), passphrase=passphrase)
             else:
-                self.key = RSA.import_key(self.read_file(os.path.join(self.root if not root else root, "temp", file_name)).read())
+                self.key = RSA.import_key(self.read_file(file_name, "r", self.root if not root else root).read())
             self.cipher = PKCS1_OAEP.new(self.key)
             self.secret_key = self.cipher.decrypt(self.get_bytes(ed["secret_token"]))
             self.token = self.get_base64(self.secret_key)

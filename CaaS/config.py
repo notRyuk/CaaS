@@ -10,6 +10,8 @@ if not PORT:
 
 SENDERMAIL = os.environ.get("SENDERMAIL")
 SENDERPASS = os.environ.get("SENDERPASS")
+JWT_SECRET_KEY = "CloudComputing"
+JWT_ALGORITHM = "HS256"
 
 DB_URL = os.environ.get("DB_URL")
 if not DB_URL:

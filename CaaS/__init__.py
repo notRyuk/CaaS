@@ -6,13 +6,13 @@ from motor.motor_asyncio import AsyncIOMotorClient
 
 from CaaS.config import DB_URL
 from CaaS.models import __all__ as ALL_MODELS
-from CaaS.routes import test, user
+from CaaS.routes import __all__ as ALL_ROUTES
 
 app = FastAPI()
 logger = logging.getLogger("uvicorn.info")
 
-app.include_router(test.router)
-app.include_router(user.router)
+for router in ALL_ROUTES:
+    app.include_router(router)
 
 
 async def connect():

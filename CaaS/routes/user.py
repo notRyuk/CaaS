@@ -1,11 +1,16 @@
 import logging
+import os
 from datetime import datetime, timedelta
+from typing import Annotated
 
 import jwt
 from Crypto.Random import random
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Form, HTTPException, UploadFile, File
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
+from CaaS.config import JWT_ALGORITHM as ALGORITHM
+from CaaS.config import JWT_SECRET_KEY as SECRET_KEY
 from CaaS.core.dsa import DSAService
 from CaaS.models import Otp, Session, User
 from CaaS.models.user import Otp as UserOtp
@@ -35,28 +40,11 @@ async def login(user: LoginUser):
     ootp = Otp(email=existing_user.email, signature=sign)
     await ootp.insert()
     mailer.sendMail(user.email, f"Your OTP for getting your files fked is <b>{otp}</b>")
-    return {"message": "Login successfull", "email": existing_user.email}
+    return {"message": "Login successful", "email": existing_user.email}
 
 
 
 
-    # Create a payload for the JWT token
-    # token_data = {"sub": existing_user.email}
-    # access_token = create_access_token(token_data)
-
-    # session = Session(
-    #     created_at=datetime.now(),
-    #     user=str(existing_user.id),  # Replace with the user's ID
-    #     token=access_token  # Replace with the user's access token
-    # )    # Generate a JWT token
-
-    # await session.insert()
-
-    # return {"access_token": access_token, "token_type": "bearer"}
-
-
-SECRET_KEY = "CloudComputing"  # Replace with your actual secret key
-ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30  # Set your desired token expiration time
 
 
@@ -85,11 +73,18 @@ async def signup(user: User):
     )
     mailer.sendMail(user.email, f"Your OTP for getting your files fked is <b>{otp}</b>")
     await new_user.insert()
-    return {"message": "Signup successful"}
+    return {"message": "OTP sent to the registered email."}
 
 class OTP(BaseModel):
     email: str
     otp: int
+
+class TempFileResponse(FileResponse):
+    def __init__(self, path: str):
+        super().__init__(path)
+
+    def __del__(self):
+        os.remove(self.path)
 
 @router.post("/signupotp")
 async def verify_signup(otp_user: OTP):
@@ -98,16 +93,18 @@ async def verify_signup(otp_user: OTP):
         return HTTPException(status_code=404, detail="User not found")
     dsaService = DSAService()
     dsaService.generate_keys(str(existing_user.id), existing_user.email)
-    # existing_user.otp = UserOtp(otp=0, verified=True, createdAt=existing_user.otp.createdAt)
     del existing_user.otp
     await existing_user.save()
-    return {"message": "Successfully generated keys."}
-    #send the keys files
+    path = os.path.join(os.getcwd(), "temp", str(existing_user.id), "id_dsa")
+    res = TempFileResponse(path)
+    return res
+    
 
     
 
 @router.post("/loginotp")
-async def verify_login(otp_user: OTP):
+async def verify_login(otp_user: Annotated[OTP, Form()], file: bytes = File(...)):
+    print(file) 
     usr = await User.find_one({"email": otp_user.email})
     if not usr:
         return HTTPException(status_code=404, detail="User not found")
@@ -116,7 +113,6 @@ async def verify_login(otp_user: OTP):
         return HTTPException(status_code=403, detail="Unauthorized")
     dsaService = DSAService()
     verified = dsaService.decrypting(otp_user.email, str(usr.id), otp_user.otp, ootp.signature)
-    print(verified)
     if not verified:
         return HTTPException(status_code=403, detail="Invalid Otp.")
     token_data = {"sub": usr.email}
@@ -129,6 +125,7 @@ async def verify_login(otp_user: OTP):
     await session.insert()
     await ootp.delete()
     return {"access_token": access_token, "token_type": "bearer"}
+
 
 @router.post("/test")
 async def test():

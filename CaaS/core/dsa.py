@@ -76,7 +76,7 @@ class DSAService(DefaultService):
         hash_obj = SHA256.new(bytes(f"{email}:{otp}", self.encoding))
         print(self.get_base64(hash_obj.digest()))
         self.key = DSA.import_key(
-            self.read_file(os.path.join(self.root, "temp", id, "id_dsa")).read(),
+            self.read_file("id_dsa", "r", os.path.join(self.root, "temp", id)).read(),
             passphrase=email
         )
         signer = DSS.new(self.key, 'fips-186-3')
@@ -88,7 +88,7 @@ class DSAService(DefaultService):
         if not os.path.isfile(os.path.join(self.root, "temp", id, "id_dsa.pub")):
             return None
         hash_obj = SHA256.new(bytes(f"{email}:{otp}", self.encoding))
-        self.key = DSA.import_key(self.read_file(os.path.join(self.root, "temp", id, "id_dsa.pub")).read())
+        self.key = DSA.import_key(self.read_file("id_dsa.pub", "r", os.path.join(self.root, "temp", id)).read())
         verifier = DSS.new(self.key, 'fips-186-3')
         try:
             verifier.verify(hash_obj, self.get_bytes(signature))

@@ -112,8 +112,7 @@ async def verify_login(email: Annotated[str, Form()], otp: Annotated[int, Form()
     ootp = await Otp.find_one({"email": usr.email})
     if not ootp:
         return HTTPException(status_code=403, detail="Unauthorized")
-    async with aiofiles.open(os.path.join(os.getcwd(), "temp", str(usr.id), "id_dsa"), "wb") as f:
-        await f.write(await file.read())
+    print(file.file.read().decode())
     dsaService = DSAService()
     verified = dsaService.decrypting(otp_user.email, str(usr.id), otp_user.otp, ootp.signature)
     if not verified:

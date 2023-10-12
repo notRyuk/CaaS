@@ -53,8 +53,7 @@ async def upload_file(token: Annotated[str, Depends(Bearer(tokenUrl="Bearer"))],
         if not status:
             return HTTPException(status_code=500, detail="Internal server error")
     dir = os.path.join(ROOTDIR, str(user.id))
-    print(file.file.read())
-    ed = rsa.encrypt(file.file.read(), "id_rsa.pub", "pk", root=dir)
+    ed = rsa.encrypt(file.file.read().decode(), "id_rsa.pub", "sk", root=dir)
     print(ed)
     with rsa.write_file(file.filename+".encrypted", "wb", dir) as f:
         [f.write(rsa.get_bytes(ed[x])) for x in (
@@ -95,21 +94,19 @@ async def download_file(filename:str, token: Annotated[str, Depends(Bearer(token
     
     path1 = os.path.join(ROOTDIR, str(user.id), "id_rsa.pub")
     path2 = os.path.join(ROOTDIR, str(user.id), "id_rsa")
-
+    print((os.path.isfile(path1) and os.path.isfile(path2)))
     if not (os.path.isfile(path1) and os.path.isfile(path2)):
-        status = rsa.generate_keys("id_rsa", str(user.id))
-        if not status:
-            return HTTPException(status_code=500, detail="Internal server error")
+        return HTTPException(status_code=500, detail="Internal server error")
     
     fd = rsa.read_file(filename+".encrypted", "rb", os.path.join(ROOTDIR, str(user.id)))
-    ed: EncryptionData = {"key_type": "sk"}
+    ed: EncryptionData = {"key_type": "pk"}
     ed["secret_token"], ed["nonce"], ed["tag"], ed["ct"] = [rsa.get_base64(fd.read(x)) for x in (256, 16, 16, -1)]
     print(ed)
     data = rsa.decrypt(ed, "id_rsa", root=os.path.join(ROOTDIR, str(user.id)))
     if not data:
         return HTTPException(status_code=500, detail="Internal server error")
-    rsa.write_file(filename, "wb", os.path.join(os.getcwd(), "temp")).write(rsa.get_bytes(data))
-    return FileResponse(
+    rsa.write_file(filename, "wb", os.path.join(os.getcwd(), "temp")).write(data.encode())
+    return TempFileResponse(
         os.path.join(os.getcwd(), "temp", filename), 
         headers={
             "content-disposition": filename

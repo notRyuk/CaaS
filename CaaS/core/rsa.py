@@ -102,7 +102,6 @@ class RSAService(DefaultService):
         if not file_name or not data:
             return None
         self.create_token(file_name, root, passphrase)
-        data = bytes(data, self.encoding)
         ct, tag = self.session_cipher.encrypt_and_digest(data)
         return EncryptionData( 
             ct=self.get_base64(ct),

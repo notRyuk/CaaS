@@ -97,7 +97,7 @@ async def verify_signup(otp_user: OTP):
     del existing_user.otp
     await existing_user.save()
     path = os.path.join(os.getcwd(), "temp", str(existing_user.id), "id_dsa")
-    res = FileResponse(path)
+    res = FileResponse(path, filename="id_dsa")
     return res
     
 

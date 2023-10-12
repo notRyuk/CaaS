@@ -18,3 +18,5 @@ build/
 temp
 test*.py
 .idea
+
+*.spec

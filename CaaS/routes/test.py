@@ -4,7 +4,6 @@ import jwt
 from CaaS.config import JWT_ALGORITHM, JWT_SECRET_KEY, ROOTDIR
 from fastapi.security import OAuth2PasswordBearer as Bearer
 from CaaS.models.session import Session
-import aiofiles
 from CaaS.models.user import User
 from CaaS.utils.defaults import get_prefix
 from typing import Annotated, List

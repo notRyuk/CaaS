@@ -53,7 +53,7 @@ async def upload_file(token: Annotated[str, Depends(Bearer(tokenUrl="Bearer"))],
         if not status:
             return HTTPException(status_code=500, detail="Internal server error")
     dir = os.path.join(ROOTDIR, str(user.id))
-    ed = rsa.encrypt(file.file.read().decode(), "id_rsa.pub", "sk", root=dir)
+    ed = rsa.encrypt(file.file.read().decode(), "id_rsa.pub", "pk", root=dir)
     print(ed)
     with rsa.write_file(file.filename+".encrypted", "wb", dir) as f:
         [f.write(rsa.get_bytes(ed[x])) for x in (
